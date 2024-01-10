@@ -3,13 +3,21 @@ use std::io;
 
 use crate::libs::file_reader::read_lines;
 
+struct LineTriple<'a>{
+    prev: &'a String,
+    curr: &'a String,
+    next: Option<&'a io::Result<String>>
+}
+
+struct SubStrMark {
+    index: usize,
+    length: usize,
+}
+
 pub fn q1() {
-
-    let mut sum: u32 = 0;
-
     // File must exist in the current path
     if let Ok(mut iter) = read_lines("./src/days/day3/day3.input") {
-
+        let mut sum: u32 = 0;
         let mut prev: String = String::from("");
         let mut lines = iter.peekable();
 
@@ -132,14 +140,17 @@ fn parse_digit_buffer(buffer: &Vec<char>) -> u32 {
 }
 
 pub fn q2() {
-
-    let mut sum: u32 = 0;
-
     // File must exist in the current path
-    if let Ok(mut lines) = read_lines("./src/days/day3/day3test.input") {
+    if let Ok(mut iter) = read_lines("./src/days/day3/day3.input") {
+        let mut sum: usize = 0;
+        let mut prev: String = String::from("");
+        let mut lines = iter.peekable();
+
         // Consumes the iterator, returns an (Optional) String
         while let Some(Ok(line)) = lines.next() {
-            sum += parse_line_q2(&line);                
+            let line_triple = LineTriple { prev: &prev, curr: &line, next: lines.peek() };
+            sum += parse_q2(&line_triple);
+            prev = line.clone();
         }
         println!("{}",sum);
     } else {
@@ -147,10 +158,88 @@ pub fn q2() {
     }
 }
 
-fn parse_line_q2(line: &String) -> u32{
-    return 0;
+fn parse_q2(line_triple: &LineTriple ) -> usize {
+    let mut value: usize = 0;
+
+    let line = line_triple.curr;
+    let mut chars = line.chars().enumerate();
+    while let Some((index,c)) = chars.next() {
+        if c == '*' {
+            value += compute_gear_ratio(line_triple, SubStrMark {index, length: 1});
+            continue;
+        }
+    }
+
+    return value;
 }
 
+fn compute_gear_ratio(line_triple: &LineTriple, sub_str_mark: SubStrMark) -> usize {
+    let curr = line_triple.curr;
+    let mut part_numbers: Vec<usize> = Vec::new();
+
+    let check_range = compute_range_value(curr.len(), (sub_str_mark.index, sub_str_mark.length) );
+    let range = SubStrMark {index: check_range.0, length: check_range.1};
+
+    if line_triple.prev.len() != 0 {
+        let gathered = gather_part_numbers(line_triple.prev, &range);
+        part_numbers.extend(gathered);
+    }
+
+    let gathered = gather_part_numbers(line_triple.curr, &range);
+    part_numbers.extend(gathered);
+
+    if let Some(Ok(next)) = line_triple.next {
+        let gathered = gather_part_numbers(next, &range);
+        part_numbers.extend(gathered);
+    }
+
+    return if part_numbers.len() != 2 {
+        0
+    } else {
+        part_numbers.into_iter().reduce(|acc, val| acc * val).unwrap()
+    }
+}
+
+fn gather_part_numbers(line: &String, sub_str_mark: &SubStrMark) -> Vec<usize> {
+    let mut part_numbers: Vec<usize> = Vec::new();
+
+    // Collect digits
+    let mut digit_index: usize = 0;
+    let mut digit_buffer: Vec<char> = Vec::new();
+    let mut chars = line.chars().enumerate();
+    while let Some((index,c)) = chars.next() {
+        // Keep track of just digits separately
+        if char::is_ascii_digit(&c) {
+            if digit_buffer.len() == 0 {
+                digit_index = index;
+            }
+            digit_buffer.push(c.clone());
+        }
+
+        // Any other char means end of a number
+        // End of line (read_line strip newline?)
+        if (!char::is_ascii_digit(&c) && digit_buffer.len() > 0 ) ||
+            (index == line.len()-1 && digit_buffer.len() > 0 ) {
+
+            let start = sub_str_mark.index;
+            let end = sub_str_mark.index + sub_str_mark.length - 1;
+            let number_start = digit_index;
+            let number_end = digit_index + digit_buffer.len() - 1;
+
+
+            // Is valid part number
+            if (number_start >= start && number_start <= end) ||
+                (number_end >= start && number_end <= end) {
+                part_numbers.push(parse_digit_buffer(&digit_buffer) as usize);
+            }
+
+            digit_buffer.clear();
+            continue;
+        }
+    }
+
+    return part_numbers;
+}
 
 #[cfg(test)]
 mod tests {
