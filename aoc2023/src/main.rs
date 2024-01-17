@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Load the days module (looking for ./days.rs)
 mod days;
 mod libs;

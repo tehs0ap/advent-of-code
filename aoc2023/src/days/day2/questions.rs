@@ -4,7 +4,6 @@ use crate::libs::file_reader::read_lines;
 
 
 pub fn q1() {
-
     let mut sum: u32 = 0;
 
     // File must exist in the current path
@@ -19,7 +18,7 @@ pub fn q1() {
     }
 }
 
-fn parse_line_q1(line: &String) -> u32{
+fn parse_line_q1(line: &str) -> u32{
 
     let mut game_id: u32 = 0;
     let mut blue: u32 = 0;
@@ -28,11 +27,11 @@ fn parse_line_q1(line: &String) -> u32{
 
     let mut digit_buffer: Vec<char> = Vec::new(); 
     let mut char_buffer: Vec<char> = Vec::new();
-    let mut chars = line.chars();
-    while let Some(c) = chars.next() {
+    let chars = line.chars();
+    for c in chars {
         // Keep track of just digits separately
         if char::is_ascii_digit(&c) {
-            digit_buffer.push(c.clone());
+            digit_buffer.push(c);
             continue;
         }
         
@@ -62,22 +61,21 @@ fn parse_line_q1(line: &String) -> u32{
             continue;
         }
 
-        char_buffer.push(c.clone());
+        char_buffer.push(c);
     }
     
     if blue > 14 || green > 13 || red > 12 {
         game_id = 0;
     }
 
-    return game_id;
+    game_id
 }
 
-fn parse_digit_buffer(buffer: &Vec<char>) -> u32 {
-    return buffer.into_iter().collect::<String>().parse().unwrap();
+fn parse_digit_buffer(buffer: &[char]) -> u32 {
+    buffer.iter().collect::<String>().parse().unwrap()
 }
 
 pub fn q2() {
-
     let mut sum: u32 = 0;
 
     // File must exist in the current path
@@ -92,26 +90,24 @@ pub fn q2() {
     }
 }
 
-fn parse_line_q2(line: &String) -> u32{
+fn parse_line_q2(line: &str) -> u32{
 
-    let mut game_id: u32 = 0;
     let mut blue: u32 = 0;
     let mut green: u32 = 0;
     let mut red: u32 = 0;
 
     let mut digit_buffer: Vec<char> = Vec::new(); 
     let mut char_buffer: Vec<char> = Vec::new();
-    let mut chars = line.chars();
-    while let Some(c) = chars.next() {
+    let chars = line.chars();
+    for c in chars {
         // Keep track of just digits separately
         if char::is_ascii_digit(&c) {
-            digit_buffer.push(c.clone());
+            digit_buffer.push(c);
             continue;
         }
         
         // Parse the game id
         if c == ':' {
-            game_id = parse_digit_buffer(&digit_buffer);
             digit_buffer.clear();
             char_buffer.clear();
             continue;
@@ -135,8 +131,8 @@ fn parse_line_q2(line: &String) -> u32{
             continue;
         }
 
-        char_buffer.push(c.clone());
+        char_buffer.push(c);
     }
     
-    return blue * green * red;
+    blue * green * red
 }

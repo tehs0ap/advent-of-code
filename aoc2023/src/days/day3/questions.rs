@@ -16,7 +16,7 @@ struct SubStrMark {
 
 pub fn q1() {
     // File must exist in the current path
-    if let Ok(mut iter) = read_lines("./src/days/day3/day3.input") {
+    if let Ok(iter) = read_lines("./src/days/day3/day3.input") {
         let mut sum: u32 = 0;
         let mut prev: String = String::from("");
         let mut lines = iter.peekable();
@@ -42,19 +42,19 @@ fn parse_line_q1(line_tuple: (&String, &String, Option<&io::Result<String>>) ) -
     // Collect digits
     let mut digit_index: usize = 0;
     let mut digit_buffer: Vec<char> = Vec::new();
-    let mut chars = line.chars().enumerate();
-    while let Some((index,c)) = chars.next() {
+    let chars = line.chars().enumerate();
+    for (index,c) in chars {
         // Keep track of just digits separately
         if char::is_ascii_digit(&c) {
-            if digit_buffer.len() == 0 {
+            if digit_buffer.is_empty() {
                 digit_index = index;
             }
-            digit_buffer.push(c.clone());
+            digit_buffer.push(c);
         }
 
         //  Any other char means end of a number
-        if (!char::is_ascii_digit(&c) && digit_buffer.len() > 0 ) ||
-            (index == line.len()-1 && digit_buffer.len() > 0 ) {
+        if (!char::is_ascii_digit(&c) && !digit_buffer.is_empty() ) ||
+            (index == line.len()-1 && !digit_buffer.is_empty() ) {
             if is_valid_part_number(line_tuple, (digit_index, digit_buffer.len()) ) {
                 value += parse_digit_buffer(&digit_buffer);
             }
@@ -63,7 +63,7 @@ fn parse_line_q1(line_tuple: (&String, &String, Option<&io::Result<String>>) ) -
         }
     }
 
-    return value;
+    value
 }
 
 fn is_valid_part_number(line_tuple: (&String, &String, Option<&io::Result<String>>), number_info: (usize, usize)) -> bool {
@@ -74,10 +74,9 @@ fn is_valid_part_number(line_tuple: (&String, &String, Option<&io::Result<String
 
     let check_range = compute_range_value(curr.len(), number_info );
 
-    if prev.len() != 0 {
-        if check_for_symbols(prev, check_range) {
-            return true;
-        }
+    if !prev.is_empty() &&
+        check_for_symbols(prev, check_range) {
+        return true
     }
 
     if check_for_symbols(curr, check_range) {
@@ -90,7 +89,7 @@ fn is_valid_part_number(line_tuple: (&String, &String, Option<&io::Result<String
         }
     }
 
-    return false;
+    false
 }
 
 fn compute_range_value(len: usize, number_info: (usize, usize)) -> (usize, usize) {
@@ -105,16 +104,16 @@ fn compute_range_value(len: usize, number_info: (usize, usize)) -> (usize, usize
     // Check for right edge
     let mut length = if num_end == len { num_len } else { num_len + 1 };
     // Check for left ege
-    let length = if num_start == 0 { length } else { length + 1 };
+    length = if num_start == 0 { length } else { length + 1 };
 
-    return (start, length);
+    (start, length)
 }
 
-fn check_for_symbols(line: &String, range_info: (usize, usize)) -> bool {
+fn check_for_symbols(line: &str, range_info: (usize, usize)) -> bool {
     let start = range_info.0;
     let length = range_info.1;
 
-    let mut chars = line.chars().skip(start);
+    let chars = line.chars().skip(start);
     let mut count: usize = 0;
     for c in chars {
         count += 1;
@@ -132,16 +131,16 @@ fn check_for_symbols(line: &String, range_info: (usize, usize)) -> bool {
         }
     }
     println!("|");
-    return false;
+    false
 }
 
-fn parse_digit_buffer(buffer: &Vec<char>) -> u32 {
-    return buffer.into_iter().collect::<String>().parse().unwrap();
+fn parse_digit_buffer(buffer: &[char]) -> u32 {
+    return buffer.iter().collect::<String>().parse().unwrap();
 }
 
 pub fn q2() {
     // File must exist in the current path
-    if let Ok(mut iter) = read_lines("./src/days/day3/day3.input") {
+    if let Ok(iter) = read_lines("./src/days/day3/day3.input") {
         let mut sum: usize = 0;
         let mut prev: String = String::from("");
         let mut lines = iter.peekable();
@@ -162,15 +161,15 @@ fn parse_q2(line_triple: &LineTriple ) -> usize {
     let mut value: usize = 0;
 
     let line = line_triple.curr;
-    let mut chars = line.chars().enumerate();
-    while let Some((index,c)) = chars.next() {
+    let chars = line.chars().enumerate();
+    for (index,c) in chars {
         if c == '*' {
             value += compute_gear_ratio(line_triple, SubStrMark {index, length: 1});
             continue;
         }
     }
 
-    return value;
+    value
 }
 
 fn compute_gear_ratio(line_triple: &LineTriple, sub_str_mark: SubStrMark) -> usize {
@@ -180,7 +179,7 @@ fn compute_gear_ratio(line_triple: &LineTriple, sub_str_mark: SubStrMark) -> usi
     let check_range = compute_range_value(curr.len(), (sub_str_mark.index, sub_str_mark.length) );
     let range = SubStrMark {index: check_range.0, length: check_range.1};
 
-    if line_triple.prev.len() != 0 {
+    if !line_triple.prev.is_empty() {
         let gathered = gather_part_numbers(line_triple.prev, &range);
         part_numbers.extend(gathered);
     }
@@ -193,7 +192,7 @@ fn compute_gear_ratio(line_triple: &LineTriple, sub_str_mark: SubStrMark) -> usi
         part_numbers.extend(gathered);
     }
 
-    return if part_numbers.len() != 2 {
+    if part_numbers.len() != 2 {
         0
     } else {
         part_numbers.into_iter().reduce(|acc, val| acc * val).unwrap()
@@ -206,20 +205,20 @@ fn gather_part_numbers(line: &String, sub_str_mark: &SubStrMark) -> Vec<usize> {
     // Collect digits
     let mut digit_index: usize = 0;
     let mut digit_buffer: Vec<char> = Vec::new();
-    let mut chars = line.chars().enumerate();
-    while let Some((index,c)) = chars.next() {
+    let chars = line.chars().enumerate();
+    for (index,c) in chars {
         // Keep track of just digits separately
         if char::is_ascii_digit(&c) {
-            if digit_buffer.len() == 0 {
+            if digit_buffer.is_empty() {
                 digit_index = index;
             }
-            digit_buffer.push(c.clone());
+            digit_buffer.push(c);
         }
 
         // Any other char means end of a number
         // End of line (read_line strip newline?)
-        if (!char::is_ascii_digit(&c) && digit_buffer.len() > 0 ) ||
-            (index == line.len()-1 && digit_buffer.len() > 0 ) {
+        if (!char::is_ascii_digit(&c) && !digit_buffer.is_empty() ) ||
+            (index == line.len()-1 && !digit_buffer.is_empty() ) {
 
             let start = sub_str_mark.index;
             let end = sub_str_mark.index + sub_str_mark.length - 1;
@@ -238,7 +237,7 @@ fn gather_part_numbers(line: &String, sub_str_mark: &SubStrMark) -> Vec<usize> {
         }
     }
 
-    return part_numbers;
+    part_numbers
 }
 
 #[cfg(test)]

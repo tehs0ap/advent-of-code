@@ -72,7 +72,7 @@ fn parse_calibration_values(line: &str) -> u32 {
     for needles in needles {
        let matched_indices: Vec<_> = line.match_indices(needles.0).collect();
        
-       if matched_indices.len() == 0 {
+       if matched_indices.is_empty() {
            continue;
        }
 
@@ -88,6 +88,6 @@ fn parse_calibration_values(line: &str) -> u32 {
     let first_digit = needles.iter().find(|tuple| tuple.0 == first.unwrap().1).unwrap().1;
     let second_digit = needles.iter().find(|tuple| tuple.0 == last.unwrap().1).unwrap().1;
 
-    return (first_digit.to_owned() + second_digit).parse().unwrap();
+    (first_digit.to_owned() + second_digit).parse().unwrap()
 }
 
